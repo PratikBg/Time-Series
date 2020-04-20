@@ -1,0 +1,126 @@
+---
+title: "Time Series Modelling"
+author: "Kaustubh Saraf"
+date: "4/19/2020"
+output: html_document
+---
+Loading packages
+```{r}
+library("forecast")
+library(tidyverse)
+library(lubridate)
+library("tseries")
+```
+
+Import data
+```{r}
+amazon=read.csv("C:/Users/kaustubh_14/Documents/GitHub/Time-Series/AMZN.csv")
+```
+
+
+The Series is the volume of shares sold
+```{r}
+amazon.vol <- amazon %>% 
+                select (Volume)
+
+amazon.vol.ts<-as.ts(amazon.vol)
+```
+
+
+# Price forecasting
+```{r}
+par(mfrow=c(1,3))
+plot(log(amazon.vol.ts))
+acf(log(amazon.vol.ts))
+pacf(log(amazon.vol.ts)) 
+```
+
+* The plots suggests that the series is stationary
+* The PACF plot suggests that the series might be generated from MA1
+* The ACF plot suggests that the series might be generated from AR1 or AR2
+
+** Lets start with checking if the series is stationary **
+# ADF Test
+
+```{r}
+adf.test(amazon.vol.ts)
+```
+The ADF suggests that the series is stationary and we do not need to take difference
+
+# Model Fitting
+Model with AR1
+```{r}
+arima100 <- arima(amazon.vol.ts,order=c(1,0,0))
+arima100
+checkresiduals(arima100)
+```
+* The model seems to fit the data well
+* The ACF plot suggests that the residuals fit well
+* The residuals are also normally distributed
+
+Now we can check MA1 model
+Model with MA1
+```{r}
+arima001 <- arima(amazon.vol.ts,order=c(0,0,1))
+arima001
+checkresiduals(arima001)
+```
+* The model seems to fit the data well
+* The ACF plot suggests that the residuals fit well
+* The residuals are also normally distributed
+
+
+Now we can check AR1 and MA1 model
+Model with AR1 and MA1
+```{r}
+arima101 <- arima(amazon.vol.ts,order=c(1,0,1))
+arima101
+checkresiduals(arima101)
+```
+* The model seems to fit the data well
+* The ACF plot suggests that the residuals fit well
+* The residuals are also normally distributed
+
+
+Initially we also observed a small spike at 2nd position in ACF plot suggesting that there might be AR2 component as well
+
+Now we can check AR2 model
+Model with AR2
+```{r}
+arima200 <- arima(amazon.vol.ts,order=c(2,0,0))
+arima200
+checkresiduals(arima200)
+```
+* The model seems to fit the data well
+* The ACF plot suggests that the residuals fit well
+* The residuals are also normally distributed
+
+
+Let's try the auto-arima function and check the output
+```{r}
+auto.arima.model <- auto.arima(amazon.vol.ts)
+auto.arima.model
+checkresiduals(auto.arima.model)
+```
+
+AutoARIMA suggests that the model is generated from AR1 series which was our initial understanding.
+
+Let's compare the different AIC values
+```{r}
+Models <- rbind('AR1', 'MA1', 'AR1 MA1', 'AR2')
+
+AIC <- rbind(arima100$aic,arima001$aic,arima101$aic,arima200$aic)
+
+
+Summary <- data.frame(Models,AIC)
+Summary
+```
+The AIC metric suggests that AR1 has smallest AIC value and we go ahead with this model
+
+
+# Predictions
+Using the forecast function, we plot the predicted values for next 30 months
+```{r}
+plot(forecast(arima100,h=30))
+```
+
