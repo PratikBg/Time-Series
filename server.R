@@ -1,4 +1,4 @@
-
+source('packages.R')
 
 amazon = read.csv(paste0(my_directory, "AMZN.csv"))
 
@@ -15,7 +15,14 @@ server <- function(input, output) {
     #arima100 <- arima(amazon.vol.ts,order=c(input$p,input$d,input$q))
     
     arima_value <- reactive({
-      arima100 <- arima(amazon.vol.ts, order = c(input$p, input$d, input$q)) 
+      
+      p <- input$p
+      
+      d <- input$d
+      
+      q <- input$q
+      
+      arima100 <- arima(amazon.vol.ts, order = c(p, d, q)) 
       arima100
     })
     
