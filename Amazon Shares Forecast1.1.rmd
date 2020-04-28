@@ -20,7 +20,9 @@ amazon=read.csv("C:/Users/gundawade.p/OneDrive - Procter and Gamble/Documents/Sp
 ```
 
 ```{r}
-amazon$month <- month(amazon$Date)
+amazon %>% 
+      mutate (month = factor(month.name[amazon$Date], levels = month.name)) %>%
+      arrange(month)
 amazon$year <- year(amazon$Date)
 ```
 
@@ -43,10 +45,10 @@ hist(amazon$Volume)
 
 The Series is the volume of shares sold
 ```{r}
-amazon.vol <- amazon %>% 
+amazon.vol <- amazon[1:60,] %>% 
                 select (month,year,Volume)
 
-spread(amazon.vol,year,Volume)
+spread(amazon.vol,month,Volume)
 
 stocksm <- amazon.vol %>% gather(month, Volume, -year)
 
