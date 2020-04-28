@@ -8,8 +8,10 @@ Loading packages
 ```{r}
 library("forecast")
 library(tidyverse)
+library(vctrs)
 library(lubridate)
 library("tseries")
+library(TSstudio)
 ```
 
 Import data
@@ -17,17 +19,47 @@ Import data
 amazon=read.csv("C:/Users/kaustubh_14/Documents/GitHub/Time-Series/AMZN.csv")
 ```
 
+```{r}
+amazon$month <- month(amazon$Date)
+amazon$year <- year(amazon$Date)
+```
+
+
+Summary statistics
+```{r}
+summary(amazon)
+```
+
+Checking the range of Volume
+```{r}
+boxplot(amazon$Volume,main = "Boxplot : Vol. of Shares")
+```
+
+Checking the distribution of Volume
+```{r}
+hist(amazon$Volume)
+```
+
 
 The Series is the volume of shares sold
 ```{r}
 amazon.vol <- amazon %>% 
-                select (Volume)
+                select (month,year,Volume)
+
+spread(amazon.vol,year,Volume)
+
+stocksm <- amazon.vol %>% gather(month, Volume, -year)
+
+amazon.vol %>% spread(month, Volume)
+
+amazon.vol %>%
+  gather(names_from = year, values_from = Volume)
 
 amazon.vol.ts<-as.ts(amazon.vol)
 ```
 
 
-# Price forecasting
+# Vol. forecasting
 ```{r}
 par(mfrow=c(1,3))
 plot(log(amazon.vol.ts))
@@ -43,7 +75,7 @@ pacf(log(amazon.vol.ts))
 # ADF Test
 
 ```{r}
-adf.test(amazon.vol.ts)
+adf.test(amazon.vol.ts,k=1)
 ```
 The ADF suggests that the series is stationary and we do not need to take difference
 
@@ -57,6 +89,25 @@ checkresiduals(arima100)
 * The model seems to fit the data well
 * The ACF plot suggests that the residuals fit well
 * The residuals are also normally distributed
+
+
+```{r}
+amazon.vol.ts.split <- ts_split(ts.obj = amazon.vol.ts, sample.out = 12)
+
+sr = window(series, start=1949, end=c(1956,12))
+ser = window(series, start=1957, end=c(1960,12))
+
+arima100 <- arima(training,order=c(1,0,0))
+
+accuracy(arima100,testing)
+
+length(USgas)
+
+length(training)
+length(testing)
+```
+
+
 
 Now we can check MA1 model
 Model with MA1
@@ -121,6 +172,11 @@ The AIC metric suggests that AR1 has smallest AIC value and we go ahead with thi
 # Predictions
 Using the forecast function, we plot the predicted values for next 30 months
 ```{r}
-plot(forecast(arima100,h=30))
+plot(forecast(arima100,h=12))
 ```
 
+
+# Next Steps:
+* We will split the data into test and validation to tune the model performance
+* Explore if VAR can be used to analyze the correlation between Closing price and Volume of shares traded
+* R-Shiny app to include the filter to choose the time period
