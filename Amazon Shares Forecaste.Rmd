@@ -2,7 +2,9 @@
 title: "Time Series Modelling"
 author: "Kaustubh Saraf"
 date: "4/19/2020"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 Loading packages
 ```{r}
@@ -82,9 +84,9 @@ testData = window(amazon.vol.ts, start=2019, end=c(2019,12))
 ```{r}
 par(mfrow=c(1,3))
 
-plot((amazon.vol.ts))
-acf((amazon.vol.ts))
-pacf((amazon.vol.ts)) 
+plot((trainData))
+acf((trainData))
+pacf((trainData)) 
 ```
 
 ```{r}
@@ -142,9 +144,6 @@ checkresiduals(arima100)
 * The residuals are also normally distributed
 
 
-```{r}
-arima100 <- arima(sr,order=c(1,0,0))
-```
 
 
 
@@ -166,11 +165,7 @@ checkresiduals(arima001)
 
 Now we can check AR1 and MA1 model
 Model with AR1 and MA1
-```{r}
-arima101 <- arima(amazon.vol.ts,order=c(1,0,1))
-arima101
-checkresiduals(arima101)
-```
+
 * The model seems to fit the data well
 * The ACF plot suggests that the residuals fit well
 * The residuals are also normally distributed
@@ -204,15 +199,7 @@ checkresiduals(auto.arima.model)
 AutoARIMA suggests that the model is generated from AR1 series which was our initial understanding.
 
 Let's compare the different AIC values
-```{r}
-Models <- rbind('AR1', 'MA1', 'AR1 MA1', 'AR2')
 
-AIC <- rbind(arima100$aic,arima001$aic,arima101$aic,arima200$aic)
-
-
-Summary <- data.frame(Models,AIC)
-Summary
-```
 The AIC metric suggests that AR1 has smallest AIC value and we go ahead with this model
 
 
@@ -227,3 +214,86 @@ plot(forecast(arima100,h=12))
 * We will split the data into test and validation to tune the model performance
 * Explore if VAR can be used to analyze the correlation between Closing price and Volume of shares traded
 * R-Shiny app to include the filter to choose the time period
+
+
+
+
+
+# VAR
+
+Data Prep
+
+Import data
+```{r}
+amazon=read.csv("C:/Users/kaustubh_14/Documents/GitHub/Time-Series/AMZN.csv")
+```
+
+```{r}
+amazon$month <- as.factor(month.abb[(month(amazon$Date))])
+
+levels(amazon$Months)
+
+amazon$year <- as.factor(year(amazon$Date))
+
+amazon <- amazon %>% 
+  mutate(Months = fct_relevel(month,"Jan",
+                              "Feb",
+                              "Mar",
+                              "Apr",
+                              "May",
+                              "Jun",
+                              "Jul",
+                              "Aug",
+                              "Sep",
+                              "Oct",
+                              "Nov",
+                              "Dec"))
+
+
+```
+
+
+```{r}
+amazon.vol.close <- amazon %>% 
+                filter(year!=2020 & year!=2015) %>% 
+                transmute(Close,Open)
+                
+                    
+
+amazon.vol.close.ts<-ts(amazon.vol.close,frequency = 12, start = c(2016,1))
+
+amazon.vol.close.ts
+```
+
+Plot
+```{r}
+autoplot(amazon.vol.close.ts[,1:2], facets=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Opening and Closing Price")
+```
+
+head(amazon)
+
+
+
+```{r}
+lm.fit <- lm(Close~Open,data=amazon.vol.close.ts)
+summary(lm.fit)
+```
+
+
+```{r}
+(fit <- auto.arima(amazon.vol.close.ts[,"Close"], xreg=amazon.vol.close.ts[,"Open"]))
+```
+
+```{r}
+(fit <- Arima(amazon.vol.close.ts[,"Close"], order=c(1,1,0), season=list(order=c(2,1,0)), xreg=amazon.vol.close.ts[,"Open"]))
+```
+
+
+
+Plot
+```{r}
+checkresiduals(fit)
+```
+
