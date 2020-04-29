@@ -33,21 +33,13 @@ trainData <-  window(amazon.vol.ts, start=2016, end=c(2018,12))
 testData  <-  window(amazon.vol.ts, start=2019, end=c(2019,12))
 
 
-# ma1.100 <- arima(trainData, order=c(0,0,1), season=list(order=c(1,0,0), period=12))
-# ma1.100.fc <- forecast(ma1.100,h=12)
-# 
-# plot(ma1.100.fc)
-# lines(testData, col="red")
-# legend("topleft",lty=1,bty = "n",col=c("red","blue"),c("Test Data","ARIMA Predicted"))
-# 
-# forecasted.val11 <-forecast(ma1.100.fc,h=12)
-# 
-# model1.accuracy11 <- accuracy(forecasted.val11,testData)
-# 
-# model1.accuracy11 <- data.frame(model1.accuracy11)
-# 
-# model1.train.MAPE11 <- model1.accuracy11[1, 'MAPE']
-# model1.test.MAPE11 <- model1.accuracy11[2, 'MAPE']
+amazon.vol.close <- amazon %>% 
+  filter(year!=2020 & year!=2015) %>% 
+  transmute(Close,Open)
+
+
+
+amazon.vol.close.ts<-ts(amazon.vol.close,frequency = 12, start = c(2016,1))
 
 
 server <- function(input, output) {
@@ -159,12 +151,43 @@ server <- function(input, output) {
       checkresiduals(arima_value())
       })
     
-    output$plotb<- renderPlot({
+    output$plotb <- renderPlot({
       plot(forecast(arima_value(), h=input$year_forecast))
       lines(testData, col="red")
       legend("topleft",lty=1,bty = "n",col=c("red","blue"),c("Test Data","ARIMA Predicted"))
     })
     
+    output$plotc <- renderPlot({
+      autoplot(amazon.vol.close.ts[,1:2], facets=TRUE) +
+        xlab("Year") + ylab("") +
+        ggtitle("Opening and Closing Price")
+    })
+    
+    output$var_summary <- renderPrint({
+      
+      lm.fit <- lm(Close~Open,data=amazon.vol.close.ts)
+      summary(lm.fit)
+      
+    })
+    
+    output$var_summary1 <- renderPrint({
+      
+      fit <- auto.arima(amazon.vol.close.ts[,"Close"], xreg=amazon.vol.close.ts[,"Open"])
+      
+      fit
+      
+    })
+    
+    output$var_summary2 <- renderPrint({
+      fit1 <<- Arima(amazon.vol.close.ts[,"Close"], order=c(1,1,0), season=list(order=c(2,1,0)), xreg=amazon.vol.close.ts[,"Open"])
+      fit1
+    })
+    
+    output$plotd <- renderPlot({
+      
+      checkresiduals(fit1)
+      
+    })
   
   })
 

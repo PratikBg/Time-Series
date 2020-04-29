@@ -15,16 +15,16 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(column(width = 4, 
-                        sliderInput(inputId = "p",label = "Select the AR component",value = 0,min = 0,max = 3),
-                        sliderInput(inputId = "d",label = "Select the number of Differences",value = 0,min = 0,max = 3),
-                        sliderInput(inputId = "q",label = "Select the MA component",value = 1,min = 0,max = 3)),
+                        sliderInput(inputId = "p",label = "AR component",value = 0,min = 0,max = 4),
+                        sliderInput(inputId = "d",label = "Number of Differences",value = 0,min = 0,max = 4),
+                        sliderInput(inputId = "q",label = "MA component",value = 1,min = 0,max = 3)),
                  column(width = 4,
-                        sliderInput(inputId = "seasP",label = "Select the Seasonal AR component",value = 0,min = 0,max = 3),
-                        sliderInput(inputId = "seasD",label = "Select the Seasonal number of Differences",value = 0,min = 0,max = 3),
-                        sliderInput(inputId = "seasQ",label = "Select the Seasonal MA component",value = 1,min = 0,max = 3)),
-                 sliderInput(inputId = "year_forecast", label = "Select the number of months for forecasting",value = 6,min = 1,max = 12,step = 1),
+                        sliderInput(inputId = "seasP",label = "Seasonal AR component",value = 0,min = 0,max = 4),
+                        sliderInput(inputId = "seasD",label = "Seasonal number of Differences",value = 0,min = 0,max = 4),
+                        sliderInput(inputId = "seasQ",label = "Seasonal MA component",value = 1,min = 0,max = 4)),
+                 sliderInput(inputId = "year_forecast", label = "Number of months for forecasting",value = 6,min = 1,max = 12,step = 1),
                  actionButton("arima_calculate", "Calculate"),
-                 width = 6),
+                 width = 4),
     
     mainPanel(tabsetPanel(
       type = "tabs",
@@ -40,7 +40,10 @@ ui <- fluidPage(
                tabsetPanel(
                  type = "tabs",
                  tabPanel("VAR Plot", plotOutput("plotc", width = 600)),
-                 tabPanel("VAR Summary", verbatimTextOutput("var_summary"))
+                 tabPanel("Linear Model Summary", verbatimTextOutput("var_summary")),
+                 tabPanel("Auto ARIMA fit Summary", verbatimTextOutput("var_summary1")),
+                 tabPanel("ARIMA Summary", verbatimTextOutput("var_summary2")),
+                 tabPanel("VAR Residual Plot", plotOutput("plotd", width = 600))
                           )
                )
     ))
