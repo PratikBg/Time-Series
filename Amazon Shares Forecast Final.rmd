@@ -18,7 +18,7 @@ library(TSstudio)
 
 Import data
 ```{r}
-amazon <- read.csv("C:/Users/kaustubh_14/Documents/GitHub/Time-Series/AMZN.csv")
+amazon <- read.csv("C:/Users/gundawade.p/OneDrive - Procter and Gamble/Documents/Spring 2020/Forecasting/Project/Time-Series/AMZN.csv")
 ```
 
 ```{r}
@@ -52,6 +52,7 @@ summary(amazon)
 
 Checking the range of Volume
 ```{r}
+options(scipen = 999)  
 boxplot(amazon$Volume,main = "Boxplot : Vol. of Shares")
 ```
 
