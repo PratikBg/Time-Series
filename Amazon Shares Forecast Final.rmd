@@ -1,6 +1,6 @@
 ---
 title: "Time Series Modelling"
-author: "Kaustubh Saraf"
+author: "Pratik Gundawade"
 date: "4/19/2020"
 output:
   word_document: default
